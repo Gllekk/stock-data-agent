@@ -1,5 +1,29 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict
+
+
+class AgentObserver(ABC):
+    """Abstract observer class for monitoring agent events."""
+    @abstractmethod
+    def update(self, event_type: str, data: Any): 
+        pass
+
+
+class ConsoleLogger(AgentObserver):
+    """Concrete observer that prints agent activity to the console."""
+    def update(self, event_type: str, data: Any):
+        if event_type == "ACT":
+            print(f"\n[AGENT] Invoking Tool: '{data['name']}'")
+            print(f"        Arguments: {data['args']}")
+
+        elif event_type == "OBSERVE":
+            # We truncate long outputs to keep the console clean
+            summary = str(data)[:150] + "..." if len(str(data)) > 150 else data
+            print(f"[SYSTEM] Tool Output: {summary}")
+
+        elif event_type == "FINAL":
+            print(f"\n[AGENT] Final Answer: {data}\n")
+
 
 class BaseTool(ABC):
     """Abstract parent class for tools."""
