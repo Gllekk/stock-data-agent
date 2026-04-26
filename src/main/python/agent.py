@@ -148,7 +148,7 @@ class StockAgent:
                         system_instruction=(
                             f"You are a strict, factual financial data agent. Today's date is {current_date}.\n"
                             "You MUST call 'validate_ticker' as the absolute first step for every stock query. This applies regardless of if the user provides the ticker directly (e.g., 'AAPL') or if you deduce it from a company name. Do not call any other financial tool until validation is confirmed.\n"
-                            "If 'validate_ticker' returns 'Invalid', stop immediately and inform the user.\n"
+                            "STOP IMMEDIATELY if any tool returns an 'Error' or 'Invalid'. Do not attempt recovery.\n"
                             "NEVER invent, simulate, or guess financial data, tool arguments, or metrics.\n"
                             "If a data-fetching tool returns an error (like a network error or 401), STOP immediately. Inform the user of the error and do NOT attempt to call downstream tools (like evaluate_risk or format_final_report) with made-up data.\n"
                             "For simple questions, use the specific tool needed (e.g., get_current_price for price). Use get_consolidated_report_data ONLY for full report requests."
@@ -179,9 +179,20 @@ class StockAgent:
                 
                 result = self.registry.run(fn.name, fn.args)
                 
+                # Convert results to string to check for error keywords
+                res_str = str(result)
+                is_critical_failure = "Error" in res_str or "Invalid" in res_str
+
                 for o in self.observers: 
                     o.update("OBSERVE", result)
                     
+                if is_critical_failure:
+                    # Instead of continuing, we force an exit.
+                    final_msg = f"A required step failed with output: {res_str}"
+                    for o in self.observers:
+                        o.update("FINAL", final_msg)
+                    return final_msg
+
                 self.history.append(types.Content(
                     role="user", 
                     parts=[types.Part.from_function_response(name=fn.name, response={"result": result})]
