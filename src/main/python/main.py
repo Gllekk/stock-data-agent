@@ -1,5 +1,6 @@
 from agent import StockAgent
 from framework import ConsoleLogger, Colors
+from validator import InputValidator
 import os
 import sys
 
@@ -13,6 +14,7 @@ def main():
     try:
         agent = StockAgent(api_key)
         agent.observers.append(ConsoleLogger())
+        validator = InputValidator()
     except Exception as e:
         print(f"{Colors.ERROR}[ERROR] {Colors.RESET}Failed to initialize agent: {e}")
         sys.exit(1)
@@ -26,12 +28,8 @@ def main():
             # Input Handling
             query = input(f"{Colors.USER}[USER] {Colors.RESET}Ask about a stock: ").strip()
             
-            # Input Validation
-            if not query:
-                print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Input cannot be empty. Please try again.")
-                continue
-                
-            command = query.lower()
+            # Process System Commands
+            command = query.strip().lower()
             if command in ['exit', 'quit']:
                 print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Shutting down...")
                 break
@@ -40,7 +38,13 @@ def main():
                 print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Conversation history and cache cleared.")
                 continue
 
-            # Execute Agent
+            # Input Validation
+            is_valid, error_msg = validator.validate(query)
+            if not is_valid:
+                print(f"{Colors.ERROR}[ERROR] {Colors.RESET}{error_msg}")
+                continue
+
+            # Execute Agent Loop
             agent.run(query)
 
         # Exit with Ctrl+C
