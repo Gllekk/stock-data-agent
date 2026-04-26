@@ -107,13 +107,17 @@ class StockAgent:
         self.observers: List[AgentObserver] = []
         
         # Fallback list for automatic model switching
-        self.available_models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.0-flash-lite"]
+        self.available_models = ["gemini-3.1-flash-lite-preview", "gemini-3.1-flash-live-preview", "gemini-3-flash-preview"]
         self.current_model_idx = 0
         
         self._init_tools()
 
     def _init_tools(self):
-        tool_classes = []
+        tool_classes = [
+            tools.TickerValidationTool, tools.CurrentPriceTool, tools.SpecificDatePriceTool,
+            tools.TechnicalIndicatorTool, tools.FundamentalsTool, tools.NewsSentimentTool,
+            tools.RiskFlagsTool, tools.CalculateAllMetricsTool, tools.ReportFormattingTool
+        ]
         for tc in tool_classes:
             self.registry.add(tc())
 
