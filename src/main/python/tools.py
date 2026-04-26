@@ -173,4 +173,40 @@ class FundamentalsTool(BaseTool):
         }
 
 
+# --- 6. News Sentiment Tool ---
+class NewsSentimentTool(BaseTool):
+    def __init__(self):
+        self.analyzer = SentimentIntensityAnalyzer()
+
+    @property
+    def name(self) -> str:
+        return "get_news_sentiment"
+
+    def get_declaration(self) -> dict:
+        return {
+            "name": self.name,
+            "description": "Performs NLP analysis on the latest 15 news headlines to determine sentiment.",
+            "parameters": {"type": "OBJECT", "properties": {"ticker": {"type": "STRING"}}, "required": ["ticker"]}
+        }
+
+    def _run_logic(self, context, ticker: str):
+        xml = context.get_news_xml(ticker)
+        if "error" in xml: return xml
+        
+        items = xml.split("<item>")[1:16]
+        headlines = [i.split("<title>")[1].split("</title>")[0].rsplit(" - ", 1)[0] for i in items]
+        
+        scores = [self.analyzer.polarity_scores(h)['compound'] for h in headlines]
+        valid_scores = [s for s in scores if s != 0]
+        avg = sum(valid_scores) / len(valid_scores) if valid_scores else 0
+        
+        return {
+            "sentiment": "Positive" if avg > 0.15 else "Negative" if avg < -0.15 else "Neutral",
+            "nlp_score": round(avg, 3),
+            "articles_analyzed": len(headlines)
+        }
+
+
+
+
 
