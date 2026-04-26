@@ -160,10 +160,10 @@ class StockAgent:
                 if any(err in error_msg for err in ["429", "503", "quota", "exhausted", "overloaded"]):
                     if self.current_model_idx < len(self.available_models) - 1:
                         self.current_model_idx += 1
-                        print(f"{Colors.ERROR}[SYSTEM ERROR] Quota/Demand issue. Auto-switching to model: {self.available_models[self.current_model_idx]}{Colors.RESET}")
+                        print(f"{Colors.ERROR}[ERROR] {Colors.RESET}Quota/Demand issue. Auto-switching to model: {self.available_models[self.current_model_idx]}")
                         continue # Retry loop with the new model
                     else:
-                        return f"Critical Error: All fallback models exhausted. Original issue: {str(e)}"
+                        return f"Critical Error: all fallback models exhausted. Original issue: {str(e)}"
                 return f"API Error: {str(e)}"
 
             model_content = response.candidates[0].content

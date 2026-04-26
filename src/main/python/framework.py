@@ -27,15 +27,15 @@ class ConsoleLogger(AgentObserver):
     def update(self, event_type: str, data: Any):
         if event_type == "ACT":
             log = self._truncate(f"Invoking: {data['name']} | Args: {data['args']}")
-            print(f"{Colors.AGENT}[AGENT] {log}{Colors.RESET}")
+            print(f"{Colors.AGENT}[AGENT] {Colors.RESET}{log}")
 
         elif event_type == "OBSERVE":
             log = self._truncate(f"Output: {data}")
-            print(f"{Colors.SYSTEM}[SYSTEM] {log}{Colors.RESET}")
+            print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}{log}")
             
         elif event_type == "FINAL":
             # We do not truncate the final answer so the user can read the actual report
-            print(f"\n{Colors.AGENT}[AGENT] Final Answer:\n{data}{Colors.RESET}\n")
+            print(f"\n{Colors.AGENT}[AGENT] {Colors.RESET}Final Answer:\n{data}\n")
 
 
 # Abstract parent class for tools

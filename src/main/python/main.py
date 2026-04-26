@@ -7,14 +7,14 @@ import sys
 def main():
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print(f"{Colors.ERROR}Error: GEMINI_API_KEY environment variable not set.{Colors.RESET}")
+        print(f"{Colors.ERROR}[ERROR] {Colors.RESET}GEMINI_API_KEY environment variable not set.")
         sys.exit(1)
 
     try:
         agent = StockAgent(api_key)
         agent.observers.append(ConsoleLogger())
     except Exception as e:
-        print(f"{Colors.ERROR}Failed to initialize agent: {e}{Colors.RESET}")
+        print(f"{Colors.ERROR}[ERROR] {Colors.RESET}Failed to initialize agent: {e}")
         sys.exit(1)
     
     print(f"{Colors.SYSTEM}--- Stock Analysis System Initialized ---{Colors.RESET}")
@@ -24,20 +24,20 @@ def main():
     while True:
         try:
             # Input Handling
-            query = input(f"{Colors.USER}[USER] Ask about a stock:{Colors.RESET} ").strip()
+            query = input(f"{Colors.USER}[USER] {Colors.RESET}Ask about a stock: ").strip()
             
             # Input Validation
             if not query:
-                print(f"{Colors.ERROR}Input cannot be empty. Please try again.{Colors.RESET}")
+                print(f"{Colors.ERROR}[SYSTEM] {Colors.RESET}Input cannot be empty. Please try again.")
                 continue
                 
             command = query.lower()
             if command in ['exit', 'quit']:
-                print(f"{Colors.SYSTEM}Shutting down...{Colors.RESET}")
+                print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Shutting down...")
                 break
             elif command == 'clear':
                 agent.clear_history()
-                print(f"{Colors.SYSTEM}Conversation history and cache cleared.{Colors.RESET}")
+                print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Conversation history and cache cleared.")
                 continue
 
             # Execute Agent
@@ -45,12 +45,12 @@ def main():
 
         # Exit with Ctrl+C
         except KeyboardInterrupt:
-            print(f"\n{Colors.SYSTEM}Process interrupted by user. Shutting down...{Colors.RESET}")
+            print(f"\n{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Process interrupted by user. Shutting down...")
             break
 
         # Catch all unexpected CLI crashes
         except Exception as e:
-            print(f"{Colors.ERROR}An unexpected error occurred: {e}{Colors.RESET}")
+            print(f"{Colors.ERROR}[ERROR] {Colors.RESET}An unexpected error occurred: {e}")
 
 
 if __name__ == "__main__":
