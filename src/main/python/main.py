@@ -28,7 +28,7 @@ def main():
             
             # Input Validation
             if not query:
-                print(f"{Colors.ERROR}[SYSTEM] {Colors.RESET}Input cannot be empty. Please try again.")
+                print(f"{Colors.SYSTEM}[SYSTEM] {Colors.RESET}Input cannot be empty. Please try again.")
                 continue
                 
             command = query.lower()
