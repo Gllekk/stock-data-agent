@@ -30,7 +30,8 @@ class TickerValidationTool(BaseTool):
 # --- 2. Current Price Tool ---
 class CurrentPriceTool(BaseTool):
     @property
-    def name(self) -> str: return "get_current_price"
+    def name(self) -> str:
+        return "get_current_price"
 
     def get_declaration(self) -> dict:
         return {
@@ -53,3 +54,44 @@ class CurrentPriceTool(BaseTool):
         
         if price is None: return f"Could not retrieve price for {ticker}."
         return {"price": price, "currency": currency}
+    
+
+# --- 3. Specific Date Price Tool ---
+class SpecificDatePriceTool(BaseTool):
+    @property
+    def name(self) -> str:
+        return "get_price_on_date"
+
+    def get_declaration(self) -> dict:
+        return {
+            "name": self.name,
+            "description": "Retrieves the closing price of a stock on a specific past date.",
+            "parameters": {
+                "type": "OBJECT",
+                "properties": {
+                    "ticker": {"type": "STRING"},
+                    "date": {"type": "STRING", "description": "YYYY-MM-DD format"}
+                },
+                "required": ["ticker", "date"]
+            }
+        }
+
+    def _run_logic(self, context, ticker: str, date: str):
+        try:
+            target_dt = datetime.datetime.strptime(date, "%Y-%m-%d")
+            p1 = int(target_dt.timestamp())
+            p2 = int((target_dt + datetime.timedelta(days=1)).timestamp())
+            
+            data = context.get_historical_window(ticker, p1, p2)
+            if "error" in data: return data["error"]
+            
+            res = data.get("chart", {}).get("result", [{}])[0]
+            prices = [p for p in res.get("indicators", {}).get("quote", [{}])[0].get("close", []) if p is not None]
+            
+            if not prices: return f"No trading data found for {ticker} on {date}."
+            return f"Closing price for {ticker} on {date}: {prices[0]:.2f}"
+        except Exception as e:
+            return f"Error parsing date or fetching data: {str(e)}"
+
+
+
