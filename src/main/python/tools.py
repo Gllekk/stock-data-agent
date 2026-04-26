@@ -1,3 +1,4 @@
+import json
 import datetime
 import statistics
 from framework import BaseTool
@@ -270,5 +271,19 @@ class CalculateAllMetricsTool(BaseTool):
         }
 
 
-
-
+# --- 9. Report Formatting Tool ---
+class ReportFormattingTool(BaseTool):
+    @property
+    def name(self):
+        return "format_final_report"
+    
+    def get_declaration(self):
+        return {
+            "name": self.name,
+            "description": "Formats raw data into a structured report string.",
+            "parameters": {"type": "OBJECT", "properties": {"data": {"type": "OBJECT"}}, "required": ["data"]}
+        }
+    
+    def _run_logic(self, context, data: dict):
+        return f"\n--- STOCK REPORT: {data.get('ticker')} ---\nData: {json.dumps(data, indent=2)}"
+    
