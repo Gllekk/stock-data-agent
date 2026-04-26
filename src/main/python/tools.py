@@ -207,6 +207,36 @@ class NewsSentimentTool(BaseTool):
         }
 
 
+# --- 7. Risk Flags Tool ---
+class RiskFlagsTool(BaseTool):
+    @property
+    def name(self) -> str:
+        return "evaluate_risk"
+
+    def get_declaration(self) -> dict:
+        return {
+            "name": self.name,
+            "description": "Flags potential risks based on technical and fundamental data.",
+            "parameters": {
+                "type": "OBJECT",
+                "properties": {"tech": {"type": "OBJECT"}, "fund": {"type": "OBJECT"}},
+                "required": ["tech", "fund"]
+            }
+        }
+
+    def _run_logic(self, context, tech: dict, fund: dict):
+        flags = []
+        if tech.get('rsi', 50) > 70: flags.append("Overbought (RSI > 70)")
+        if tech.get('rsi', 50) < 30: flags.append("Oversold (RSI < 30)")
+        
+        vol_str = tech.get('volatility', '0%').replace('%', '')
+        if float(vol_str) > 40: flags.append("High Volatility (> 40%)")
+        
+        pe = fund.get('pe')
+        if isinstance(pe, (int, float)) and pe > 50:
+            flags.append(f"High Valuation (P/E: {pe})")
+            
+        return flags if flags else ["No high-risk flags identified."]
 
 
 
