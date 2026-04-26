@@ -274,16 +274,51 @@ class CalculateAllMetricsTool(BaseTool):
 # --- 9. Report Formatting Tool ---
 class ReportFormattingTool(BaseTool):
     @property
-    def name(self):
+    def name(self) -> str:
         return "format_final_report"
-    
-    def get_declaration(self):
+
+    def get_declaration(self) -> dict:
         return {
             "name": self.name,
-            "description": "Formats raw data into a structured report string.",
+            "description": "Formats raw financial data into a human-readable CLI report.",
             "parameters": {"type": "OBJECT", "properties": {"data": {"type": "OBJECT"}}, "required": ["data"]}
         }
-    
+
     def _run_logic(self, context, data: dict):
-        return f"\n--- STOCK REPORT: {data.get('ticker')} ---\nData: {json.dumps(data, indent=2)}"
+        try:
+            ticker = data.get('ticker', 'N/A').upper()
+            p = data.get('price_metrics', {})
+            t = data.get('technical_indicators', {})
+            f = data.get('fundamental_data', {})
+            s = data.get('sentiment_analysis', {})
+            r = data.get('risk_flags', [])
+
+            report = f"""
+==================================================
+        FINANCIAL REPORT: {ticker}
+==================================================
+[MARKET STATUS]
+* Price:          {p.get('price', 'N/A')} {p.get('currency', 'USD')}
+* Market Cap:     {f.get('market_cap', 'N/A')}
+* P/E Ratio:      {f.get('pe', 'N/A')}
+* EPS:            {f.get('eps', 'N/A')}
+
+[TECHNICAL ANALYSIS]
+* RSI (14-Day):   {t.get('rsi', 'N/A')}
+* SMA (50-Day):   {t.get('sma50', 'N/A')}
+* MACD:           {t.get('macd', 'N/A')}
+* Volatility:     {t.get('volatility', 'N/A')}
+* Bollinger:      {t.get('bollinger', {}).get('lower', 'N/A')} - {t.get('bollinger', {}).get('upper', 'N/A')}
+
+[SENTIMENT & NEWS]
+* Tone:           {s.get('sentiment', 'N/A')}
+* NLP Score:      {s.get('nlp_score', 'N/A')}
+* Articles:       {s.get('articles_analyzed', 0)}
+
+[RISK EVALUATION]
+* {chr(10).join(['- ' + flag for flag in r])}
+=================================================="""
+            return report
+        except Exception as e:
+            return f"Error formatting report: {str(e)}"
     
