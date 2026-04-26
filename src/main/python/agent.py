@@ -161,11 +161,15 @@ class StockAgent:
             # Process Tool Calls and Final Answers
             if model_content.parts and model_content.parts[0].function_call:
                 fn = model_content.parts[0].function_call
-                for o in self.observers: o.update("ACT", {"name": fn.name, "args": fn.args})
+
+                for o in self.observers: 
+                    o.update("ACT", {"name": fn.name, "args": fn.args})
                 
                 result = self.registry.run(fn.name, fn.args)
                 
-                for o in self.observers: o.update("OBSERVE", result)
+                for o in self.observers: 
+                    o.update("OBSERVE", result)
+                    
                 self.history.append(types.Content(
                     role="user", 
                     parts=[types.Part.from_function_response(name=fn.name, response={"result": result})]
