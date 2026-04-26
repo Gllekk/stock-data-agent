@@ -9,7 +9,7 @@ from framework import AgentObserver, Colors
 import tools
 
 
-# Helper for handling network I/O
+# Helper for StockAgent infrastructure to handle network I/O
 class ToolHelper:
     _cookie = None
     _crumb = None
@@ -56,4 +56,18 @@ class ToolHelper:
         req = ToolHelper._get_request(url)
         with urllib.request.urlopen(req, timeout=15) as r:
             return r.read().decode()
+
+
+# Tool registry for managing tools
+class ToolRegistry:
+    def __init__(self):
+        self.tools = {}
+
+    def add(self, tool): 
+        self.tools[tool.name] = tool
+
+    def run(self, name, args):
+        if name not in self.tools: return f"Error: Tool {name} not found."
+        return self.tools[name].execute(self, **args)
+    
 
