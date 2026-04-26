@@ -2,31 +2,44 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 
+# ANSI Escape Codes for CLI Color Formatting
+class Colors:
+    USER = '\033[96m'     # Cyan
+    AGENT = '\033[95m'    # Magenta
+    SYSTEM = '\033[93m'   # Yellow
+    ERROR = '\033[91m'    # Red
+    RESET = '\033[0m'     # Reset
+
+
+# Abstract observer class for monitoring agent events
 class AgentObserver(ABC):
-    """Abstract observer class for monitoring agent events."""
     @abstractmethod
     def update(self, event_type: str, data: Any): 
         pass
 
 
+# Concrete observer that prints agent activity to the console
 class ConsoleLogger(AgentObserver):
-    """Concrete observer that prints agent activity to the console."""
+    def _truncate(self, text: str, max_length: int = 100) -> str:
+        clean_text = str(text).replace('\n', ' ').replace('\r', '')
+        return f"{clean_text[:max_length]}..." if len(clean_text) > max_length else clean_text
+
     def update(self, event_type: str, data: Any):
         if event_type == "ACT":
-            print(f"\n[AGENT] Invoking Tool: '{data['name']}'")
-            print(f"        Arguments: {data['args']}")
+            log = self._truncate(f"Invoking: {data['name']} | Args: {data['args']}")
+            print(f"{Colors.AGENT}[AGENT] {log}{Colors.RESET}")
 
         elif event_type == "OBSERVE":
-            # We truncate long outputs to keep the console clean
-            summary = str(data)[:150] + "..." if len(str(data)) > 150 else data
-            print(f"[SYSTEM] Tool Output: {summary}")
-
+            log = self._truncate(f"Output: {data}")
+            print(f"{Colors.SYSTEM}[SYSTEM] {log}{Colors.RESET}")
+            
         elif event_type == "FINAL":
-            print(f"\n[AGENT] Final Answer: {data}\n")
+            # We do not truncate the final answer so the user can read the actual report
+            print(f"\n{Colors.AGENT}[AGENT] Final Answer:\n{data}{Colors.RESET}\n")
 
 
+# Abstract parent class for tools
 class BaseTool(ABC):
-    """Abstract parent class for tools."""
     @property
     @abstractmethod
     def name(self) -> str: pass
@@ -38,7 +51,7 @@ class BaseTool(ABC):
         try:
             return self._run_logic(registry_context, **kwargs)
         except Exception as e:
-            return f"Error executing {self.name}: {str(e)}"
+            return f"Execution Error in {self.name}: {str(e)}"
 
     @abstractmethod
     def _run_logic(self, context: Any, **kwargs) -> str:
