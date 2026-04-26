@@ -1,6 +1,6 @@
-import os
 import json
 import datetime
+from typing import List
 import urllib.request
 import urllib.parse
 from google import genai
@@ -99,3 +99,78 @@ class ToolRegistry:
         return self.tools[name].execute(self, **args)
     
 
+class StockAgent:
+    def __init__(self, api_key: str):
+        self.client = genai.Client(api_key=api_key)
+        self.registry = ToolRegistry()
+        self.history = []
+        self.observers: List[AgentObserver] = []
+        
+        # Fallback list for automatic model switching
+        self.available_models = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.0-flash-lite"]
+        self.current_model_idx = 0
+        
+        self._init_tools()
+
+    def _init_tools(self):
+        tool_classes = []
+        for tc in tool_classes:
+            self.registry.add(tc())
+
+    # Clear conversational context to save quota/tokens 
+    def clear_history(self):
+        self.history.clear()
+        self.registry.cache.clear()
+
+    def run(self, prompt: str):
+        self.history.append(types.Content(role="user", parts=[types.Part.from_text(text=prompt)]))
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        
+        while True:
+            try:
+                # Attempt API Call
+                response = self.client.models.generate_content(
+                    model=self.available_models[self.current_model_idx],
+                    contents=self.history,
+                    config=types.GenerateContentConfig(
+                        tools=[types.Tool(function_declarations=[t.get_declaration() for t in self.registry.tools.values()])],
+                        system_instruction=(
+                            "You are a strict, factual financial data agent.\n"
+                            f"1. CRITICAL: Today's date is {current_date}. Base all your temporal logic (past vs. future) on this date.\n"
+                            "2. CRITICAL: NEVER invent, simulate, or guess financial data, tool arguments, or metrics. \n"
+                            "3. If a data-fetching tool returns an error (like a network error or 401), STOP immediately. Inform the user of the error and do NOT attempt to call downstream tools (like evaluate_risk or format_final_report) with made-up data.\n"
+                            "4. For simple questions, use the specific tool needed (e.g., get_current_price for price). Use get_consolidated_report_data ONLY for full report requests."
+                        )
+                    )
+                )
+            except Exception as e:
+                # Exception Handling: Quota & Demand Fallbacks
+                error_msg = str(e).lower()
+                if any(err in error_msg for err in ["429", "503", "quota", "exhausted", "overloaded"]):
+                    if self.current_model_idx < len(self.available_models) - 1:
+                        self.current_model_idx += 1
+                        print(f"{Colors.ERROR}[SYSTEM ERROR] Quota/Demand issue. Auto-switching to model: {self.available_models[self.current_model_idx]}{Colors.RESET}")
+                        continue # Retry loop with the new model
+                    else:
+                        return f"Critical Error: All fallback models exhausted. Original issue: {str(e)}"
+                return f"API Error: {str(e)}"
+
+            model_content = response.candidates[0].content
+            self.history.append(model_content)
+            
+            # Process Tool Calls and Final Answers
+            if model_content.parts and model_content.parts[0].function_call:
+                fn = model_content.parts[0].function_call
+                for o in self.observers: o.update("ACT", {"name": fn.name, "args": fn.args})
+                
+                result = self.registry.run(fn.name, fn.args)
+                
+                for o in self.observers: o.update("OBSERVE", result)
+                self.history.append(types.Content(
+                    role="user", 
+                    parts=[types.Part.from_function_response(name=fn.name, response={"result": result})]
+                ))
+            else:
+                final_text = model_content.parts[0].text
+                for o in self.observers: o.update("FINAL", final_text)
+                return final_text
