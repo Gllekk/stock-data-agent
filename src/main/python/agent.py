@@ -66,7 +66,13 @@ class ToolRegistry:
         self.cache_funds = {}
         self.cache_news = {}
 
-    def add(self, tool): self.tools[tool.name] = tool
+    def add(self, tool):
+        self.tools[tool.name] = tool
+
+    def clear_all_caches(self):
+        self.cache_chart.clear()
+        self.cache_funds.clear()
+        self.cache_news.clear()
 
     def get_chart_data(self, ticker: str, days: int = 7):
         key = f"{ticker}_{days}"
@@ -124,7 +130,8 @@ class StockAgent:
     # Clear conversational context to save quota/tokens 
     def clear_history(self):
         self.history.clear()
-        self.registry.cache.clear()
+        self.registry.clear_all_caches()
+        self.current_model_idx = 0
 
     def run(self, prompt: str):
         self.history.append(types.Content(role="user", parts=[types.Part.from_text(text=prompt)]))
