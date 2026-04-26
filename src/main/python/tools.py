@@ -239,4 +239,36 @@ class RiskFlagsTool(BaseTool):
         return flags if flags else ["No high-risk flags identified."]
 
 
+# --- 8. Calculate All Metrics Tool (Facade) ---
+class CalculateAllMetricsTool(BaseTool):
+    @property
+    def name(self) -> str:
+        return "get_consolidated_report_data"
+
+    def get_declaration(self) -> dict:
+        return {
+            "name": self.name,
+            "description": "FACADE: Collects all data points (Price, Techs, Fundamentals, Sentiment, Risks) in one call.",
+            "parameters": {"type": "OBJECT", "properties": {"ticker": {"type": "STRING"}}, "required": ["ticker"]}
+        }
+
+    def _run_logic(self, context, ticker: str):
+        # Using the internal _run_logic of other tools to assemble the report data
+        price = CurrentPriceTool()._run_logic(context, ticker)
+        techs = TechnicalIndicatorTool()._run_logic(context, ticker)
+        funds = FundamentalsTool()._run_logic(context, ticker)
+        news = NewsSentimentTool()._run_logic(context, ticker)
+        risks = RiskFlagsTool()._run_logic(context, tech=techs, fund=funds)
+        
+        return {
+            "ticker": ticker,
+            "price_metrics": price,
+            "technical_indicators": techs,
+            "fundamental_data": funds,
+            "sentiment_analysis": news,
+            "risk_flags": risks
+        }
+
+
+
 
