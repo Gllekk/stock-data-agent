@@ -97,7 +97,8 @@ class SpecificDatePriceTool(BaseTool):
 # --- 4. Technical Indicators Tool (SMA, RSI, MACD, Bollinger, Volatility) ---
 class TechnicalIndicatorTool(BaseTool):
     @property
-    def name(self) -> str: return "calculate_technicals"
+    def name(self) -> str:
+        return "calculate_technicals"
 
     def get_declaration(self) -> dict:
         return {
@@ -143,6 +144,32 @@ class TechnicalIndicatorTool(BaseTool):
             "macd": round(macd, 4),
             "bollinger": {"upper": round(sma20 + 2*std20, 2), "lower": round(sma20 - 2*std20, 2)},
             "volatility": f"{vol:.2%}"
+        }
+
+
+# --- 5. Fundamentals Tool ---
+class FundamentalsTool(BaseTool):
+    @property
+    def name(self) -> str:
+        return "get_fundamentals"
+
+    def get_declaration(self) -> dict:
+        return {
+            "name": self.name,
+            "description": "Retrieves Market Cap, P/E Ratio, EPS, and Dividend Yield.",
+            "parameters": {"type": "OBJECT", "properties": {"ticker": {"type": "STRING"}}, "required": ["ticker"]}
+        }
+
+    def _run_logic(self, context, ticker: str):
+        data = context.get_fundamental_data(ticker)
+        if "error" in data: return data["error"]
+        
+        res = data.get("quoteResponse", {}).get("result", [{}])[0]
+        return {
+            "market_cap": res.get("marketCap", "N/A"),
+            "pe": res.get("trailingPE", "N/A"),
+            "eps": res.get("trailingEps", "N/A"),
+            "div_yield": f"{res.get('dividendYield', 0):.2%}" if res.get('dividendYield') else "0.00%"
         }
 
 
