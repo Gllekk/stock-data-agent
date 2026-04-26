@@ -14,7 +14,7 @@ class TickerValidationTool(BaseTool):
     def get_declaration(self) -> dict:
         return {
             "name": self.name,
-            "description": "Verifies if a stock ticker symbol is valid.",
+            "description": "MANDATORY FIRST STEP: Verifies if a stock ticker symbol is valid before any other analysis.",
             "parameters": {
                 "type": "OBJECT",
                 "properties": {"ticker": {"type": "STRING", "description": "Ticker symbol (e.g., AAPL)"}},
