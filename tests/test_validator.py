@@ -5,6 +5,7 @@ import unittest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 from stock_agent.validator import InputValidator
 
+
 class TestInputValidator(unittest.TestCase):
     def setUp(self):
         self.validator = InputValidator()
@@ -42,6 +43,7 @@ class TestInputValidator(unittest.TestCase):
         is_valid, msg = self.validator.validate("Tell me about MSFT {}} <>|")
         self.assertFalse(is_valid)
         self.assertIn("invalid special characters", msg)
+
 
 if __name__ == '__main__':
     unittest.main()
