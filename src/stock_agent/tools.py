@@ -1,8 +1,12 @@
-import json
+import os
+import sys
 import datetime
 import statistics
-from framework import BaseTool
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from stock_agent.framework import BaseTool
+
 
 
 # --- 1. Ticker Validation Tool ---

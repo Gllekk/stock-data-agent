@@ -1,8 +1,10 @@
-from agent import StockAgent
-from framework import ConsoleLogger, Colors
-from validator import InputValidator
 import os
 import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from stock_agent.agent import StockAgent 
+from stock_agent.framework import ConsoleLogger, Colors
+from stock_agent.validator import InputValidator
 
 
 def main():

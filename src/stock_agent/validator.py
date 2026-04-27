@@ -1,11 +1,9 @@
 import re
 from spellchecker import SpellChecker
+from better_profanity import profanity
 
 class InputValidator:
     def __init__(self):
-        # Basic list of restricted words (profanity, system commands)
-        self.restricted_words = ["hack", "exploit", "bypass", "nsfw"] 
-        
         # Common prompt injection signatures
         self.injection_signatures = [
             "ignore all previous",
@@ -14,10 +12,12 @@ class InputValidator:
             "forget your instructions"
         ]
 
-        # Initialize the dictionary
+        # Initialize a dictionary
         self.spell = SpellChecker()
-    
 
+        # Initialize a profanity filter
+        profanity.load_censor_words()
+    
     # Evaluate if the text has a sufficient ratio of valid English words forgiving ALL-CAPS words)
     def _is_meaningful(self, user_input: str) -> bool:
 
@@ -27,7 +27,7 @@ class InputValidator:
         if not words:
             return False
 
-        # Filter out probable tickers (all caps) and single-letter words (like 'a' or 'I')
+        # Filter out probable tickers (all caps) and single-letter words
         standard_words = [w.lower() for w in words if not w.isupper() and len(w) > 1]
 
         # If the user ONLY typed a ticker, let it pass
@@ -60,7 +60,7 @@ class InputValidator:
         if len(user_input) > 200:
             return False, "Input is too long. Please keep your query under 200 characters."
 
-        # Meaningless/Gibberish Check
+        # Gibberish Check
         if not self._is_meaningful(user_input):
             return False, "Input appears meaningless or contains too much gibberish. Please use standard English."
 
@@ -69,12 +69,11 @@ class InputValidator:
             return False, "Input contains invalid special characters. Please use standard text."
 
         # Inappropriate Content Check
-        input_lower = user_input.lower()
-        for word in self.restricted_words:
-            if word in input_lower:
-                return False, f"Input contains restricted vocabulary ('{word}')."
+        if profanity.contains_profanity(user_input):
+            return False, "Inappropriate language detected (including obfuscated text)."
 
         # Prompt Injection Check
+        input_lower = user_input.lower()
         for signature in self.injection_signatures:
             if signature in input_lower:
                 return False, "Prompt injection attempt detected. Request blocked."

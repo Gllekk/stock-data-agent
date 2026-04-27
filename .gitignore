@@ -1,1 +1,3 @@
-src/main/python/__pycache__
+.pytest_cache
+src/stock_agent/__pycache__
+tests/__pycache__

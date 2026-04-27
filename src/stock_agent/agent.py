@@ -1,3 +1,5 @@
+import os
+import sys
 import json
 import datetime
 from typing import List
@@ -5,8 +7,10 @@ import urllib.request
 import urllib.parse
 from google import genai
 from google.genai import types
-from framework import AgentObserver, Colors
-import tools
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from stock_agent.framework import AgentObserver, Colors
+from stock_agent import tools
 
 
 # Helper for StockAgent infrastructure to handle network I/O
@@ -113,7 +117,7 @@ class StockAgent:
         self.observers: List[AgentObserver] = []
         
         # Fallback list for automatic model switching
-        self.available_models = ["gemini-3.1-flash-lite-preview", "gemini-3.1-flash-live-preview", "gemini-3-flash-preview"]
+        self.available_models = ["gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
         self.current_model_idx = 0
         
         self._init_tools()
