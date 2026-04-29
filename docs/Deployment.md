@@ -37,7 +37,7 @@ Internet access is required at runtime — the agent makes live requests to Yaho
 **1. Clone the repository:**
 
 ```
-git clone <repository-url>
+git clone https://github.com/Gllekk/stock-data-agent
 cd stock-data-agent
 ```
 
