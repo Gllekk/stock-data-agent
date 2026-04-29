@@ -8,7 +8,7 @@ A technical reference for the test suite: its infrastructure, individual test mo
 
 1. [Overview](#1-overview)
 2. [Test Infrastructure](#2-test-infrastructure--test_utilspy)
-3. [Input Validation Tests](#3-validator-tests--test_validatorpy)
+3. [Input Validation Tests](#3-input-validation-tests--test_validatorpy)
 4. [Tool Unit Tests](#4-tool-unit-tests--test_toolspy)
 5. [Agent Scenario Tests](#5-agent-scenario-tests--test_scenariospy)
 6. [Error Handling Tests](#6-error-handling-tests--test_error_handlingpy)
